@@ -42,19 +42,19 @@ provider "kubectl" {
   load_config_file       = false
 }
 
-data "terraform_remote_state" "local" {
-  backend = "local"
+# data "terraform_remote_state" "local" {
+#   backend = "local"
 
-  config = {
-    path = var.state_file_path
-  }
-}
+#   config = {
+#     path = var.state_file_path
+#   }
+# }
 
 data "aws_eks_cluster" "example" {
-  name = data.terraform_remote_state.local.outputs.cluster_name
+  name = data.terraform_remote_state.test.outputs.cluster_name
 }
 data "aws_eks_cluster_auth" "example" {
-  name = data.terraform_remote_state.local.outputs.cluster_name
+  name = data.terraform_remote_state.test.outputs.cluster_name
 }
 
 provider "helm" {
