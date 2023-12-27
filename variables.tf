@@ -32,16 +32,12 @@ variable "extra_tags" {
   ]
 }
 
-variable "AWS_ACCESS_KEY_ID" {
-  description = "AWS Access Key ID"
-}
-
-variable "AWS_SECRET_ACCESS_KEY" {
-  description = "AWS Secret Access Key"
-}
-
-# provider "aws" {
-#   access_key = var.AWS_ACCESS_KEY_ID
-#   secret_key = var.AWS_SECRET_ACCESS_KEY
-#   // 나머지 설정들...
+# variable "AWS_ACCESS_KEY_ID" {
+#   description = "AWS Access Key ID"
 # }
+
+# variable "AWS_SECRET_ACCESS_KEY" {
+#   description = "AWS Secret Access Key"
+# }
+
+
