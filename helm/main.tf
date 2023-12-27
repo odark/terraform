@@ -7,10 +7,11 @@
 #   }
 # }
 
-# provider "aws" {
-#   region = "ap-northeast-2"
-#   profile = "default"
-# }
+provider "aws" {
+  region = "ap-northeast-2"
+  # access_key = var.AWS_ACCESS_KEY_ID
+  # secret_key = var.AWS_SECRET_ACCESS_KEY  
+}
 
 provider "kubernetes" {
 #   config_path              = "~/.kube/config"
