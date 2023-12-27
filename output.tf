@@ -10,3 +10,8 @@ output "kubeconfig-certificate-authority-data" {
 output "cluster_name" {
   value = aws_eks_cluster.k8s-demo-cluster.name
 }
+
+
+output "rendered_file" {
+  value = data.template_file.aws-auth.rendered
+}
