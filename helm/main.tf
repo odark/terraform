@@ -180,7 +180,6 @@ resource "kubernetes_service_account" "serviceaccount" {
     name = "aws-test-manager"
     namespace = "external-secrets"
     annotations = {
-    #   "attach-role-arn" = "arn:aws:iam::682935334295:role/external-secret-test"
       "eks.amazonaws.com/role-arn" = "arn:aws:iam::682935334295:role/external-secret-test"
     }
   }
