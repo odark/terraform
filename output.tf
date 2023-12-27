@@ -14,4 +14,5 @@ output "cluster_name" {
 
 output "rendered_file" {
   value = data.template_file.aws-auth.rendered
+  description = "aws-auth yaml create"
 }
