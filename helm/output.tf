@@ -1,3 +1,3 @@
-# output "cluster_ca_certificate" {
-#   value = provider.kubernetes.cluster_ca_certificate
-# }
+output "serviceaccount" {
+  value = kubernetes_service_account.serviceaccount.id
+}
