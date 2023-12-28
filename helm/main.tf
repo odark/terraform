@@ -194,5 +194,5 @@ resource "kubernetes_service_account" "serviceaccount" {
   }
   depends_on = [ 
     helm_release.example
-   ]
+  ]
 }
