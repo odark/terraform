@@ -18,38 +18,37 @@ provider "aws" {
   # profile = "devops"
 }
 
-
-
-
 ###################################
 #VPC 설정
 ###################################
 resource "aws_vpc" "k8s-vpc" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "default"
+  cidr_block           = "10.0.0.0/16"
+  instance_tenancy     = "default"
   enable_dns_hostnames = true
-  enable_dns_support = true
+  enable_dns_support   = true
 
   tags = {
-    "Name" = "k8s-demo-vpc"
+    "Name"                                      = "k8s-demo-vpc"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
+# VPC 에 생성될 Subnet
 resource "aws_subnet" "k8s-subnet" {
-  #count = length(var.availability_zones)
-  count = 3
-  vpc_id     = aws_vpc.k8s-vpc.id
-  cidr_block = "10.0.${count.index * 10 + 1}.0/24"
-  availability_zone = var.availability_zones[count.index]
+  count                   = length(var.availability_zones)
+  # count = 3
+  vpc_id                  = aws_vpc.k8s-vpc.id
+  cidr_block              = "10.0.${count.index * 10 + 1}.0/24"
+  availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
   tags = {
-    "Name" = "${var.availability_zones[count.index]}"
+    "Name"                                      = "${var.availability_zones[count.index]}"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
+# VPC 에 ingernet_gateway를 연결
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.k8s-vpc.id
 
@@ -59,16 +58,17 @@ resource "aws_internet_gateway" "gw" {
 }
 
 
+# 이렇게 생성하면 경로가 그대로 채택된다.
 resource "aws_route_table" "local-route" {
   vpc_id = aws_vpc.k8s-vpc.id
 
-  # since this is exactly the route AWS will create, the route will be adopted
   route {
     cidr_block = aws_vpc.k8s-vpc.cidr_block
     gateway_id = "local"
   }
 }
 
+# 모든 주소는 internet-gateway로 향한다.
 resource "aws_route_table" "gw-route" {
 	vpc_id = aws_vpc.k8s-vpc.id
 
@@ -78,6 +78,7 @@ resource "aws_route_table" "gw-route" {
 	}
 }
 
+# 해당 부분 주석처리 - 왜 필요한가, 어떤 의미인가
 # resource "aws_route_table_association" "rta" {
 #   count = length(var.availability_zones)
 #   route_table_id = aws_route_table.local-route.id
@@ -85,7 +86,7 @@ resource "aws_route_table" "gw-route" {
 # }
 
 #######################################
-#EKS IAM Role
+# EKS용  IAM Role
 #######################################
 data "aws_iam_policy_document" "eks-assume-role-doc" {
   statement {
@@ -121,7 +122,9 @@ resource "aws_iam_role_policy_attachment" "cluster-AmazonEKSVPCResourceControlle
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
   role       = aws_iam_role.eks-role.name
 }
-
+#######################################
+# EKS용 Sg 설정
+#######################################
 resource "aws_security_group" "eks" {
 	name = "k8s-demo-sg"
 	description = "Cluster communication with worker nodes"
@@ -145,17 +148,17 @@ resource "aws_security_group" "eks" {
 	}
 	
 }
-
-#EKS cluster
+#######################################
+# EKS cluster 설정 
+#######################################
 resource "aws_eks_cluster" "k8s-demo-cluster" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks-role.arn
 
   vpc_config {
-    security_group_ids = [aws_security_group.eks.id]
-    #subnet_ids = [aws_subnet.example1.id, aws_subnet.example2.id]    
-    subnet_ids = aws_subnet.k8s-subnet[*].id
-    endpoint_public_access = true
+    security_group_ids      = [aws_security_group.eks.id]
+    subnet_ids              = aws_subnet.k8s-subnet[*].id
+    endpoint_public_access  = true
 	  endpoint_private_access = true
   }
 
@@ -168,10 +171,10 @@ resource "aws_eks_cluster" "k8s-demo-cluster" {
   ]
 }
 
-# ################################
-# #EKS Nodegrouup IAM Role
+# ############################################3##
+# EKS Nodegrouup IAM Role
 # 노드가 아래 권한이 있어야 노드로써 역할을 할수 있는것이다. 그러기위해 aws_auth 또한 필요함.
-# ###############################
+# ################################################
 resource "aws_iam_role" "node-role" {
   name = "eks-node-group-role"
 
@@ -202,12 +205,16 @@ resource "aws_iam_role_policy_attachment" "node-role-AmazonEC2ContainerRegistryR
   role       = aws_iam_role.node-role.name
 }
 
+##############################################################
+# EKS Worker 노드 Launch Configuration에 들어갈 IAM Role profile
+##############################################################
 resource "aws_iam_instance_profile" "worker" {
 	name = "k8s-demo-node-profile"
 	role = aws_iam_role.node-role.name
 }
-
-#woker sg
+#########################################
+# EKS Woker sg
+############################################
 resource "aws_security_group" "worker" {
   name        = "kuberkuber-worker"
   description = "Security group for all nodes in the cluster"
@@ -292,7 +299,7 @@ resource "aws_security_group_rule" "worker_ingress_cluster_kubelet" {
 }
 
 ############################################
-# LaunchConfiguration
+# EKS LaunchConfiguration
 ############################################
 data "aws_ami" "worker" {
   filter {
@@ -313,15 +320,14 @@ USERDATA
 }
 
 resource "aws_launch_configuration" "k8s-demo-ami" {
-  name_prefix   = "k8s-demo-example-"
-  #image_id      = data.aws_ami.worker.id
-  image_id = "ami-07cc8400108193157"
-  #image_id = "ami-0426898ee4f233052"
-  instance_type = "t3.medium"
-  iam_instance_profile = aws_iam_instance_profile.worker.name
+  name_prefix                 = "k8s-demo-example-"
+  #image_id                   = data.aws_ami.worker.id
+  image_id                    = "ami-07cc8400108193157"
+  instance_type               = "t3.medium"
+  iam_instance_profile        = aws_iam_instance_profile.worker.name
   security_groups             = [aws_security_group.worker.id]
   user_data_base64            = base64encode(local.eks_worker_userdata)
-  key_name = "bastion_odark"
+  key_name                    = "bastion_odark"
   associate_public_ip_address = true
 
   lifecycle {
@@ -334,7 +340,7 @@ resource "aws_autoscaling_group" "k8s-demo-asg" {
   launch_configuration = aws_launch_configuration.k8s-demo-ami.name
   min_size             = 1
   max_size             = 3
-  desired_capacity   = 3
+  desired_capacity     = 3
   vpc_zone_identifier  = aws_subnet.k8s-subnet[*].id
   
 
@@ -352,34 +358,19 @@ resource "aws_autoscaling_group" "k8s-demo-asg" {
       propagate_at_launch = tag.value.propagate_at_launch
     }
   }
-
-  # tag {
-  #   key                 = "Name"
-  #   value               = "${var.cluster_name}-test"
-  #   propagate_at_launch = true
-  # }
-
-  # tag {
-  #   key                 = "kubernetes.io/cluster/${var.cluster_name}"
-  #   value               = "owned"
-  #   propagate_at_launch = true
-  # }
-
-  # tag {
-  #   key                 = "k8s.io/cluster/${var.cluster_name}"
-  #   value               = "owned"
-  #   propagate_at_launch = true
-  # }
 }
 
 #########################################
-# aws-auth 생성
+# aws-auth 파일 특정 폴더에 생성
 ###########################################
 # resource "local_file" "aws-auth" {
 #   content  = data.template_file.aws-auth.rendered
 #   filename = "${path.module}/.output/aws_auth.yaml"
 # }
 
+#########################################
+# aws-auth 파일이용해 리소스 생성 - helm 폴더로 이동시켰다.
+###########################################
 # resource "kubectl_manifest" "clustersecert" {
 #       yaml_body = data.template_file.aws-auth.rendered
 # }
@@ -389,13 +380,7 @@ resource "aws_autoscaling_group" "k8s-demo-asg" {
 # }
 
 
-provider "kubectl" {
-  host                   = aws_eks_cluster.k8s-vpc.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.k8s-vpc.certificate_authority.0.data)
-  token                  = aws_eks_cluster.k8s-vpc.token
-  load_config_file       = false
 
-}
 ################################################################################
 # Route
 # IGW로 전체 트래픽이 가도록 Default Routing Table CIDR 수정 및 명시적 서브넷 설정
@@ -418,62 +403,9 @@ resource "aws_route" "default-rt-to-igw" {
 #   route_table_id = local.default_route_table_id
 # }
 
-########################################
-# helm repo
-########################################
-# data "aws_eks_cluster_auth" "example" {
-#   name = aws_eks_cluster.k8s-demo-cluster.name
-# }
-
-# provider "kubernetes" {
-#   config_path = "~/.kube/config" # 적절한 경로로 변경하세요
-# }
-
-# resource "local_file" "kubeconfig" {
-#   filename = "~/.kube/config" # 적절한 경로로 변경하세요
-#   content = data.aws_eks_cluster_auth.example.kubeconfig[0].data
-# }
-
-# provider "kubernetes" {
-#   host                   = aws_eks_cluster.k8s-demo-cluster.endpoint
-#   cluster_ca_certificate = base64decode(aws_eks_cluster.k8s-demo-cluster.certificate_authority.0.data)
-#   exec {
-#     api_version = "client.authentication.k8s.io/v1alpha1"
-#     command     = "aws"
-#     args = [
-#       "eks",
-#       "get-token",
-#       "--cluster-name",
-#       aws_eks_cluster.k8s-demo-cluster.name
-#     ]
-#   }
-# }
-
-data "aws_eks_cluster" "example" {
-  name = aws_eks_cluster.k8s-demo-cluster.name
-}
-data "aws_eks_cluster_auth" "example" {
-  name = aws_eks_cluster.k8s-demo-cluster.name
-}
-
-
-
-# data "aws_iam_policy_document" "external-secret-role-doc" {
-#   statement {
-#     actions = [
-#       "secretsmanager:GetResourcePolicy",
-#       "secretsmanager:GetSecretValue",
-#       "secretsmanager:DescribeSecret",
-#       "secretsmanager:ListSecretVersionIds"
-#     ]
-#     resources = ["arn:aws:secretsmanager:ap-northeast-2:*:secret:*",]
-#     effect = "Allow"
-#   }
-# }
-
-
-
-#-------------------------------
+#############################################
+# external-secrets 설치를 위한 설정
+##############################################
 data "aws_iam_policy_document" "external-secret-role-doc" {
   statement {
     effect = "Allow"
@@ -493,40 +425,11 @@ resource "aws_iam_policy" "external-secret-policy" {
   policy      = data.aws_iam_policy_document.external-secret-role-doc.json
 }
 
-# resource "aws_iam_role" "external-secret-role" {
-#   name               = "external-secret-test"
-#   #assume_role_policy = data.aws_iam_policy_document.external-secret-role-doc.json
-#   #assume_role_policy = aws_iam_policy.external-secret-policy.policy
-#   assume_role_policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Action = "sts:AssumeRole"
-#         Effect = "Allow"
-#         Sid    = ""
-#         Principal = {
-#           Service = "ec2.amazonaws.com"
-#         }
-#       },
-#     ]
-#   })
-#   #Attach the policy
-#   inline_policy {
-#     policy = jsonencode(aws_iam_policy.external-secret-policy.policy)
-#   }
-# }
 
-#------------------------------
-
-# data "aws_iam_policy" "external-secret-policy" {
-#   name = "external-secret-test"
-# }
-
-# resource "aws_iam_role" "external-secret-role" {
-#   name               = "external-secret-test"
-#   #assume_role_policy = data.aws_iam_policy_document.external-secret-role-doc.json
-#   assume_role_policy = data.aws_iam_policy.external-secret-policy.policy
-# }
+locals {
+  find_index  = "${length(regexall("/", aws_iam_openid_connect_provider.k8s-demo-oidc.arn)) > 0 ? index(split("", aws_iam_openid_connect_provider.k8s-demo-oidc.arn), "/") : -1}"
+  oidc_substr = substr(aws_iam_openid_connect_provider.k8s-demo-oidc.arn, local.find_index + 1, -1)
+}
 
 
 resource "aws_iam_openid_connect_provider" "k8s-demo-oidc" {
@@ -535,19 +438,12 @@ resource "aws_iam_openid_connect_provider" "k8s-demo-oidc" {
   url                = aws_eks_cluster.k8s-demo-cluster.identity[0].oidc[0].issuer
 }
 
-locals {
-  find_index = "${length(regexall("/", aws_iam_openid_connect_provider.k8s-demo-oidc.arn)) > 0 ? index(split("", aws_iam_openid_connect_provider.k8s-demo-oidc.arn), "/") : -1}"
-
-  oidc_substr = substr(aws_iam_openid_connect_provider.k8s-demo-oidc.arn, local.find_index + 1, -1)
-}
-
-
 resource "aws_iam_role" "external-secret-role" {
   name = "external-secret-test"
 
   assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
+    Version    = "2012-10-17",
+    Statement  = [
       {
         Action = "sts:AssumeRoleWithWebIdentity",
         Effect = "Allow",
