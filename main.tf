@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.30.0"
     }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.7.0"
+    }
   }
 }
 
@@ -13,6 +17,7 @@ provider "aws" {
   # secret_key = var.AWS_SECRET_ACCESS_KEY
   # profile = "devops"
 }
+
 
 
 
@@ -370,11 +375,27 @@ resource "aws_autoscaling_group" "k8s-demo-asg" {
 #########################################
 # aws-auth 생성
 ###########################################
-resource "local_file" "aws-auth" {
-  content  = data.template_file.aws-auth.rendered
-  filename = "${path.cwd}/.output/aws_auth.yaml"
-}
+# resource "local_file" "aws-auth" {
+#   content  = data.template_file.aws-auth.rendered
+#   filename = "${path.module}/.output/aws_auth.yaml"
+# }
 
+# resource "kubectl_manifest" "clustersecert" {
+#       yaml_body = data.template_file.aws-auth.rendered
+# }
+
+# data "local_file" "aws-auth-data" {
+#   filename = "${path.module}/.output/aws_auth.yaml"
+# }
+
+
+provider "kubectl" {
+  host                   = aws_eks_cluster.k8s-vpc.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.k8s-vpc.certificate_authority.0.data)
+  token                  = aws_eks_cluster.k8s-vpc.token
+  load_config_file       = false
+
+}
 ################################################################################
 # Route
 # IGW로 전체 트래픽이 가도록 Default Routing Table CIDR 수정 및 명시적 서브넷 설정
