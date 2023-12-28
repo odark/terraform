@@ -65,6 +65,13 @@ provider "helm" {
   }
 }
 
+##########################################
+# 제일먼저 aws-auth 생성
+############################################
+resource "kubectl_manifest" "aws-auth-manifest" {
+      yaml_body = data.template_file.aws-auth.rendered
+}
+
 
 resource "helm_release" "example" {
   name        = "external-secrets"
@@ -79,7 +86,9 @@ resource "helm_release" "example" {
     value = "true"
   }
 #   timeout = 900
-#   depends_on = [kubernetes_service_account.serviceaccount]
+   depends_on = [
+    kubectl_manifest.aws-auth-manifest
+   ]
 }
 
 resource "kubectl_manifest" "clusterSecretStore" {
