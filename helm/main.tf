@@ -192,4 +192,7 @@ resource "kubernetes_service_account" "serviceaccount" {
       "eks.amazonaws.com/role-arn" = "arn:aws:iam::682935334295:role/external-secret-test"
     }
   }
+  depends_on = [ 
+    helm_release.example
+  ]
 }
