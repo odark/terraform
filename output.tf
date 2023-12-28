@@ -16,3 +16,8 @@ output "rendered_file" {
   value = data.template_file.aws-auth.rendered
   description = "aws-auth yaml create"
 }
+
+output "node-role" {
+  value = aws_iam_role.node-role.arn
+}
+
