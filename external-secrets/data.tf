@@ -5,7 +5,7 @@ data "terraform_remote_state" "test" {
     organization = "odark"
     hostname     = "app.terraform.io"
     workspaces   = {
-      name = "test"
+      name = "cluster"
     }
   }
 }
