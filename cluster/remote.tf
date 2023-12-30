@@ -4,7 +4,7 @@ terraform {
     organization = "odark"
 
     workspaces {
-      name = "test"
+      name = "cluster"
     }
   }
 }
