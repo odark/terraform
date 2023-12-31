@@ -3,7 +3,6 @@
 #     path = var.state_file_path
 #   }
 # }
-
 # Using a single workspace:
 terraform {
   backend "remote" {
