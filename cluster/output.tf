@@ -15,3 +15,6 @@ output "node-role" {
   value = aws_iam_role.node-role.arn
 }
 
+output "autoscaling_name" {
+  value = aws_autoscaling_group.k8s-demo-asg.name
+}
