@@ -11,7 +11,7 @@ terraform {
     organization = "odark"
 
     workspaces {
-      name = "test_helm"
+      name = "external-secrets"
     }
   }
 }
