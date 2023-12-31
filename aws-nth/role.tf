@@ -4,9 +4,13 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.k8s-demo.token
 }
 
+# locals {
+#   find_index  = "${length(regexall("/", aws_iam_openid_connect_provider.k8s-demo-oidc.arn)) > 0 ? index(split("", aws_iam_openid_connect_provider.k8s-demo-oidc.arn), "/") : -1}"
+#   oidc_substr = substr(aws_iam_openid_connect_provider.k8s-demo-oidc.arn, local.find_index + 1, -1)
+# }
 locals {
-  find_index  = "${length(regexall("/", aws_iam_openid_connect_provider.k8s-demo-oidc.arn)) > 0 ? index(split("", aws_iam_openid_connect_provider.k8s-demo-oidc.arn), "/") : -1}"
-  oidc_substr = substr(aws_iam_openid_connect_provider.k8s-demo-oidc.arn, local.find_index + 1, -1)
+  find_index  = "${length(regexall("/", data.aws_iam_openid_connect_provider.example.arn)) > 0 ? index(split("", data.aws_iam_openid_connect_provider.example.arn), "/") : -1}"
+  oidc_substr = substr(data.aws_iam_openid_connect_provider.example.arn, local.find_index + 1, -1)
 }
 
 data "aws_eks_cluster" "k8s-demo" {
@@ -16,10 +20,14 @@ data "aws_eks_cluster_auth" "k8s-demo" {
   name = data.terraform_remote_state.test.outputs.cluster_name
 }
 
-resource "aws_iam_openid_connect_provider" "k8s-demo-oidc" {
-  client_id_list     = ["sts.amazonaws.com"]
-  thumbprint_list    = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
-  url                = data.aws_eks_cluster.k8s-demo.identity[0].oidc[0].issuer
+# resource "aws_iam_openid_connect_provider" "k8s-demo-oidc" {
+#   client_id_list     = ["sts.amazonaws.com"]
+#   thumbprint_list    = ["9e99a48a9960b14926bb7f3b02e22da2b0ab7280"]
+#   url                = data.aws_eks_cluster.k8s-demo.identity[0].oidc[0].issuer
+# }
+
+data "aws_iam_openid_connect_provider" "example" {
+  arn = data.terraform_remote_state.test.outputs.k8s-demo-oidc
 }
 
 resource "aws_iam_policy" "policy" {
@@ -58,7 +66,8 @@ resource "aws_iam_role" "nth-role" {
         Action = "sts:AssumeRoleWithWebIdentity",
         Effect = "Allow",
         Principal = {
-          Federated = aws_iam_openid_connect_provider.k8s-demo-oidc.arn
+          #Federated = aws_iam_openid_connect_provider.k8s-demo-oidc.arn
+          Federated = data.aws_iam_openid_connect_provider.example.arn
         },
         Condition = {
           StringEquals = {

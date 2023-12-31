@@ -134,8 +134,8 @@ resource "aws_iam_policy" "nth-policy" {
 resource "helm_release" "example" {
   name        = "aws-node-termination-handler"
   namespace   = "kube-system"
-  repository  = "oci://public.ecr.aws/aws-ec2/helm/aws-node-termination-handler"
-  version     = "1.20.0"
+  repository = "https://github.com/aws/aws-node-termination-handler/releases/download/v1.20.0"
+#   version     = "1.20.0"
   chart       = "aws-node-termination-handler"
   create_namespace = true
 
