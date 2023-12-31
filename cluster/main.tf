@@ -19,7 +19,7 @@ provider "aws" {
 }
 
 ###################################
-#VPC 설정
+# VPC 설정
 ###################################
 resource "aws_vpc" "k8s-vpc" {
   cidr_block           = "10.0.0.0/16"
@@ -356,8 +356,16 @@ resource "aws_autoscaling_group" "k8s-demo-asg" {
       key                 = tag.value.key
       value               = tag.value.value
       propagate_at_launch = tag.value.propagate_at_launch
+      
     }
+    
   }
+  tag {
+    key                 = "aws-node-termination-handler/managed"
+    value               = ""
+    propagate_at_launch = true
+  }
+  
 }
 
 #########################################
