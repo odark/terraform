@@ -67,12 +67,16 @@ resource "aws_sqs_queue" "terraform_queue" {
   }
 }
 
+# resource "aws_sqs_queue" "terraform_queue_deadletter" {
+#   name = "terraform-example-deadletter-queue"
+#   redrive_allow_policy = jsonencode({
+#     redrivePermission = "byQueue",
+#     # sourceQueueArns   = [aws_sqs_queue.terraform_queue.arn]
+#     sourceQueueArn      = aws_sqs_queue.terraform_queue.arn,
+#   })
+# }
 resource "aws_sqs_queue" "terraform_queue_deadletter" {
   name = "terraform-example-deadletter-queue"
-  redrive_allow_policy = jsonencode({
-    redrivePermission = "byQueue",
-    # sourceQueueArns   = [aws_sqs_queue.terraform_queue.arn]
-  })
 }
 
 
@@ -97,7 +101,7 @@ resource "aws_cloudwatch_event_rule" "console" {
   description = "Capture each AWS Console Sign In"
 
   event_pattern = jsonencode({
-    source = "aws.autoscaling"
+    source = ["aws.autoscaling"]
     detail-type = [
       "EC2 Instance-terminate Lifecycle Action"
     ]
@@ -126,3 +130,22 @@ resource "aws_iam_policy" "nth-policy" {
     }]
   })
 }
+
+resource "helm_release" "example" {
+  name        = "aws-node-termination-handler"
+  namespace   = "kube-system"
+  repository  = "oci://public.ecr.aws/aws-ec2/helm/aws-node-termination-handler"
+  version     = "1.20.0"
+  chart       = "aws-node-termination-handler"
+  create_namespace = true
+
+  set {
+    name = "enableSqsTerminationDraining"
+    value = "true"
+  }
+  set {
+    name = "queueURL"
+    value = "https://sqs.ap-northeast-2.amazonaws.com/${var.accountid}/${var.queue_name}"
+  }
+}
+
