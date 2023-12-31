@@ -60,6 +60,10 @@ resource "helm_release" "example" {
     name = "installCRDs"
     value = "true"
   }
+  set {
+    name = "secretDescriptor.namespaceSelector.matchNames"
+    value = "test-ns"
+  }
 
   depends_on = [
     kubectl_manifest.aws-auth-manifest
