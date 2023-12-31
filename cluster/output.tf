@@ -18,3 +18,7 @@ output "node-role" {
 output "autoscaling_name" {
   value = aws_autoscaling_group.k8s-demo-asg.name
 }
+
+output "k8s-demo-oidc" {
+  value = aws_iam_openid_connect_provider.k8s-demo-oidc.arn
+}
