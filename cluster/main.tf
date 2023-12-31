@@ -361,7 +361,7 @@ resource "aws_autoscaling_group" "k8s-demo-asg" {
     
   }
   tag {
-    key                 = "aws-node-termination-handler/managed",
+    key                 = "aws-node-termination-handler/managed"
     value               = ""
     propagate_at_launch = true
   }
