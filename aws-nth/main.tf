@@ -120,6 +120,8 @@ resource "aws_cloudwatch_event_target" "event_rule_target_1" {
   target_id = "1"
   rule      = aws_cloudwatch_event_rule.event_rule_1.name
   arn       = aws_sqs_queue.terraform_queue.arn
+
+  
 }
 
 resource "aws_cloudwatch_event_rule" "event_rule_2" {
@@ -132,6 +134,8 @@ resource "aws_cloudwatch_event_rule" "event_rule_2" {
       "EC2 Spot Instance Interruption Warning"
     ]
   })
+
+  depends_on = [ aws_cloudwatch_event_rule.event_rule_1 ]
 }
 
 resource "aws_cloudwatch_event_target" "event_rule_target_2" {
@@ -154,13 +158,14 @@ resource "aws_cloudwatch_event_rule" "event_rule_3" {
       "EC2 Instance State-change Notification"
     ]
   })
+  depends_on = [ aws_cloudwatch_event_rule.event_rule_2 ]
 }
 
 resource "aws_cloudwatch_event_target" "event_rule_target_3" {
   target_id = "3"
   rule      = aws_cloudwatch_event_rule.event_rule_3.name
   arn       = aws_sqs_queue.terraform_queue.arn
-  
+
   depends_on = [ 
     aws_cloudwatch_event_target.event_rule_target_2
    ]
