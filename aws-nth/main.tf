@@ -31,7 +31,7 @@ provider "helm" {
 }
 
 resource "aws_sqs_queue" "terraform_queue" {
-  name                      = "nth-queue"
+  name                      = var.queue_name
   delay_seconds             = 90
   max_message_size          = 2048
   message_retention_seconds = 300
@@ -180,7 +180,7 @@ resource "aws_cloudwatch_event_target" "event_rule_target_3" {
 
 #############################3
 resource "aws_iam_policy" "nth-policy" {
-  name        = "nth-queue-policy"
+  name        = "${var.queue_name}-policy"
   path        = "/"
   description = "queue for aws node terminate hander"
 

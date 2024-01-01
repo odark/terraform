@@ -11,7 +11,7 @@ variable "region" {
   type = string
 }
 variable "queue_name" {
-  default = "nth_queue"
+  default = "nth-queue"
   type = string
 }
 variable "AWS_ACCESS_KEY_ID" {
