@@ -22,6 +22,14 @@ provider "aws" {
 #   })
 # }
 
+provider "helm" {
+  kubernetes {
+    host                   =  data.aws_eks_cluster.k8s-demo.endpoint
+    cluster_ca_certificate =  base64decode(data.aws_eks_cluster.k8s-demo.certificate_authority[0].data)
+    token                  =  data.aws_eks_cluster_auth.k8s-demo.token 
+  }
+}
+
 resource "aws_sqs_queue" "terraform_queue" {
   name                      = "nth-queue"
   delay_seconds             = 90
