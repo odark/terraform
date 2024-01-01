@@ -23,3 +23,7 @@ output "k8s-demo-oidc" {
   value = aws_iam_openid_connect_provider.k8s-demo-oidc.arn
 }
 
+output "node-role-name" {
+  value = aws_iam_role.node-role.name
+}
+
