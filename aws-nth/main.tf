@@ -203,7 +203,7 @@ resource "aws_iam_policy" "nth-policy" {
 
 resource "aws_iam_policy_attachment" "additional_policy_attachment" {
   name       = "additional-policy-attachment"
-  roles      = [data.terraform_remote_state.test.outputs.node-role]
+  roles      = [data.terraform_remote_state.test.outputs.node-role-name]
   policy_arn = aws_iam_policy.nth-policy.arn
 }
 
