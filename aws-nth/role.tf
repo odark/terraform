@@ -57,7 +57,7 @@ resource "aws_iam_policy" "policy" {
 }
 
 resource "aws_iam_role" "nth-role" {
-  name = "external-secret-test"
+  name = "nth-role"
 
   assume_role_policy = jsonencode({
     Version    = "2012-10-17",
