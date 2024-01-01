@@ -118,7 +118,7 @@ resource "aws_cloudwatch_event_rule" "event_rule_1" {
 
 resource "aws_cloudwatch_event_target" "event_rule_target_1" {
   target_id = "1"
-  rule      = aws_cloudwatch_event_rule.console.name
+  rule      = aws_cloudwatch_event_rule.event_rule_1.name
   arn       = aws_sqs_queue.terraform_queue.arn
 }
 
