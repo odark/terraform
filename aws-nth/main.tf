@@ -136,7 +136,7 @@ resource "helm_release" "example" {
   namespace   = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-node-termination-handler"
-  version    = "v1.19.0"
+  version    = "1.19.0"
   create_namespace = true
 
   set {
