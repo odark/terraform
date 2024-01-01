@@ -138,6 +138,10 @@ resource "aws_cloudwatch_event_target" "event_rule_target_2" {
   target_id = "2"
   rule      = aws_cloudwatch_event_rule.event_rule_2.name
   arn       = aws_sqs_queue.terraform_queue.arn
+
+  depends_on = [ 
+    aws_cloudwatch_event_target.event_rule_target_1
+   ]
 }
 
 resource "aws_cloudwatch_event_rule" "event_rule_3" {
@@ -156,6 +160,10 @@ resource "aws_cloudwatch_event_target" "event_rule_target_3" {
   target_id = "3"
   rule      = aws_cloudwatch_event_rule.event_rule_3.name
   arn       = aws_sqs_queue.terraform_queue.arn
+  
+  depends_on = [ 
+    aws_cloudwatch_event_target.event_rule_target_2
+   ]
 }
 
 #############################3
