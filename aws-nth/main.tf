@@ -104,7 +104,7 @@ resource "aws_autoscaling_lifecycle_hook" "k8s-demo-asg-hook" {
 #   role_arn                = "arn:aws:iam::123456789012:role/S3Access"
 }
 
-resource "aws_cloudwatch_event_rule" "console" {
+resource "aws_cloudwatch_event_rule" "event_rule_1" {
   name        = "k8s-demo-event-rule" 
   description = "Capture each AWS Console Sign In"
 
@@ -114,6 +114,48 @@ resource "aws_cloudwatch_event_rule" "console" {
       "EC2 Instance-terminate Lifecycle Action"
     ]
   })
+}
+
+resource "aws_cloudwatch_event_target" "event_rule_target_1" {
+  target_id = "1"
+  rule      = aws_cloudwatch_event_rule.event_rule_1.name
+  arn       = aws_sqs_queue.terraform_queue.arn
+}
+
+resource "aws_cloudwatch_event_rule" "event_rule_2" {
+  name        = "k8s-demo-event-rule" 
+  description = "EC2 Spot Instance Interruption Warning"
+
+  event_pattern = jsonencode({
+    source = ["aws.ec2"]
+    detail-type = [
+      "EC2 Spot Instance Interruption Warning"
+    ]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "event_rule_target_2" {
+  target_id = "2"
+  rule      = aws_cloudwatch_event_rule.event_rule_2.name
+  arn       = aws_sqs_queue.terraform_queue.arn
+}
+
+resource "aws_cloudwatch_event_rule" "event_rule_3" {
+  name        = "k8s-demo-event-rule" 
+  description = "EC2 Instance State-change Notification"
+
+  event_pattern = jsonencode({
+    source = ["aws.ec2"]
+    detail-type = [
+      "EC2 Instance State-change Notification"
+    ]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "event_rule_target_3" {
+  target_id = "3"
+  rule      = aws_cloudwatch_event_rule.event_rule_3.name
+  arn       = aws_sqs_queue.terraform_queue.arn
 }
 
 #############################3
