@@ -40,6 +40,8 @@ resource "aws_sqs_queue" "terraform_queue" {
     deadLetterTargetArn = aws_sqs_queue.terraform_queue_deadletter.arn
     maxReceiveCount     = 4
   })
+
+  depends_on = [aws_sqs_queue.terraform_queue_deadletter]
 #   policy = jsondecode({
 #     Statement = [{
 #         Effect = "Allow",
@@ -121,6 +123,10 @@ resource "aws_cloudwatch_event_target" "event_rule_target_1" {
   rule      = aws_cloudwatch_event_rule.event_rule_1.name
   arn       = aws_sqs_queue.terraform_queue.arn
 
+  depends_on = [
+    aws_sqs_queue.terraform_queue
+  ]
+
   
 }
 
@@ -158,7 +164,7 @@ resource "aws_cloudwatch_event_rule" "event_rule_3" {
       "EC2 Instance State-change Notification"
     ]
   })
-  depends_on = [ aws_cloudwatch_event_rule.event_rule_2 ]
+  depends_on = [ aws_cloudwatch_event_rule.event_rule_2,aws_sqs_queue.terraform_queue ]
 }
 
 resource "aws_cloudwatch_event_target" "event_rule_target_3" {
@@ -167,7 +173,8 @@ resource "aws_cloudwatch_event_target" "event_rule_target_3" {
   arn       = aws_sqs_queue.terraform_queue.arn
 
   depends_on = [ 
-    aws_cloudwatch_event_target.event_rule_target_2
+    aws_cloudwatch_event_target.event_rule_target_2,
+    aws_sqs_queue.terraform_queue
    ]
 }
 
