@@ -43,6 +43,30 @@ resource "kubernetes_service_account" "alb_service_account" {
   }
 }
 
+#############################3
+resource "aws_iam_policy" "alb-add-policy" {
+  name        = "${var.alb_controller_name}-policy"
+  path        = "/"
+  description = "queue for alb controller"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+        Effect = "Allow",
+        Action = [
+            "elasticloadbalancing:DescribeLoadBalancers",
+        ],
+        Resource = "*"
+    }]
+  })
+}
+
+resource "aws_iam_policy_attachment" "additional_policy_attachment" {
+  name       = "additional-alb-policy-attachment"
+  roles      = [data.terraform_remote_state.test.outputs.node-role-name]
+  policy_arn = aws_iam_policy.alb-add-policy.arn
+}
+
 resource "helm_release" "example" {
   name        = "aws-load-balancer-controller"
   namespace   = "kube-system"
@@ -66,6 +90,7 @@ resource "helm_release" "example" {
   }
   depends_on = [ 
     aws_iam_policy.policy,
-    kubernetes_service_account.alb_service_account
+    kubernetes_service_account.alb_service_account,
+    aws_iam_policy_attachment.additional_policy_attachment
    ]
 }
