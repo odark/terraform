@@ -72,7 +72,7 @@ resource "helm_release" "example" {
   namespace   = "kube-system"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "2.5.1"
+  version    = "2.6.2"
   create_namespace = true
 
   set {
