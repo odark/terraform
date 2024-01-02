@@ -111,9 +111,11 @@ resource "aws_cloudwatch_event_rule" "event_rule_1" {
   description = "Capture each AWS Console Sign In"
 
   event_pattern = jsonencode({
-    source = ["aws.autoscaling"]
+    source = ["aws.ec2","aws.autoscaling"]
     detail-type = [
-      "EC2 Instance-terminate Lifecycle Action"
+      "EC2 Instance-terminate Lifecycle Action",
+      "EC2 Spot Instance Interruption Warning",
+      "EC2 Instance State-change Notification"
     ]
   })
 }
@@ -130,53 +132,53 @@ resource "aws_cloudwatch_event_target" "event_rule_target_1" {
   
 }
 
-resource "aws_cloudwatch_event_rule" "event_rule_2" {
-  name        = "k8s-demo-event-rule" 
-  description = "EC2 Spot Instance Interruption Warning"
+# resource "aws_cloudwatch_event_rule" "event_rule_2" {
+#   name        = "k8s-demo-event-rule" 
+#   description = "EC2 Spot Instance Interruption Warning"
 
-  event_pattern = jsonencode({
-    source = ["aws.ec2"]
-    detail-type = [
-      "EC2 Spot Instance Interruption Warning"
-    ]
-  })
+#   event_pattern = jsonencode({
+#     source = ["aws.ec2"]
+#     detail-type = [
+#       "EC2 Spot Instance Interruption Warning"
+#     ]
+#   })
 
-  depends_on = [ aws_cloudwatch_event_rule.event_rule_1 ]
-}
+#   depends_on = [ aws_cloudwatch_event_rule.event_rule_1 ]
+# }
 
-resource "aws_cloudwatch_event_target" "event_rule_target_2" {
-  target_id = "2"
-  rule      = aws_cloudwatch_event_rule.event_rule_2.name
-  arn       = aws_sqs_queue.terraform_queue.arn
+# resource "aws_cloudwatch_event_target" "event_rule_target_2" {
+#   target_id = "2"
+#   rule      = aws_cloudwatch_event_rule.event_rule_2.name
+#   arn       = aws_sqs_queue.terraform_queue.arn
 
-  depends_on = [ 
-    aws_cloudwatch_event_target.event_rule_target_1
-   ]
-}
+#   depends_on = [ 
+#     aws_cloudwatch_event_target.event_rule_target_1
+#    ]
+# }
 
-resource "aws_cloudwatch_event_rule" "event_rule_3" {
-  name        = "k8s-demo-event-rule" 
-  description = "EC2 Instance State-change Notification"
+# resource "aws_cloudwatch_event_rule" "event_rule_3" {
+#   name        = "k8s-demo-event-rule" 
+#   description = "EC2 Instance State-change Notification"
 
-  event_pattern = jsonencode({
-    source = ["aws.ec2"]
-    detail-type = [
-      "EC2 Instance State-change Notification"
-    ]
-  })
-  depends_on = [ aws_cloudwatch_event_rule.event_rule_2,aws_sqs_queue.terraform_queue ]
-}
+#   event_pattern = jsonencode({
+#     source = ["aws.ec2"]
+#     detail-type = [
+#       "EC2 Instance State-change Notification"
+#     ]
+#   })
+#   depends_on = [ aws_cloudwatch_event_rule.event_rule_2,aws_sqs_queue.terraform_queue ]
+# }
 
-resource "aws_cloudwatch_event_target" "event_rule_target_3" {
-  target_id = "3"
-  rule      = aws_cloudwatch_event_rule.event_rule_3.name
-  arn       = aws_sqs_queue.terraform_queue.arn
+# resource "aws_cloudwatch_event_target" "event_rule_target_3" {
+#   target_id = "3"
+#   rule      = aws_cloudwatch_event_rule.event_rule_3.name
+#   arn       = aws_sqs_queue.terraform_queue.arn
 
-  depends_on = [ 
-    aws_cloudwatch_event_target.event_rule_target_2,
-    aws_sqs_queue.terraform_queue
-   ]
-}
+#   depends_on = [ 
+#     aws_cloudwatch_event_target.event_rule_target_2,
+#     aws_sqs_queue.terraform_queue
+#    ]
+# }
 
 #############################3
 resource "aws_iam_policy" "nth-policy" {
@@ -223,5 +225,9 @@ resource "helm_release" "example" {
     name = "queueURL"
     value = "https://sqs.ap-northeast-2.amazonaws.com/${var.accountid}/${var.queue_name}"
   }
+
+  depends_on = [ 
+    aws_iam_policy_attachment.additional_policy_attachment
+   ]
 }
 
