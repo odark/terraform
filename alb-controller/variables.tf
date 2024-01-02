@@ -16,3 +16,7 @@ variable "AWS_SECRET_ACCESS_KEY" {
   description = "AWS Secret Access Key"
   type    = string
 }
+
+variable "alb_controller_name" {
+  default = "alb-controller"
+}
