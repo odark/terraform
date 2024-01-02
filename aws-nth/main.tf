@@ -32,9 +32,9 @@ provider "helm" {
 
 resource "aws_sqs_queue" "terraform_queue" {
   name                      = var.queue_name
-  delay_seconds             = 90
+  delay_seconds             = 10
   max_message_size          = 2048
-  message_retention_seconds = 300
+  message_retention_seconds = 30
   receive_wait_time_seconds = 10
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.terraform_queue_deadletter.arn
@@ -94,7 +94,7 @@ resource "aws_autoscaling_lifecycle_hook" "k8s-demo-asg-hook" {
   name                   = "k8s-demo-asg-hook"
   autoscaling_group_name = data.terraform_remote_state.test.outputs.autoscaling_name
   default_result         = "CONTINUE"
-  heartbeat_timeout      = 300
+  heartbeat_timeout      = 30
   lifecycle_transition   = "autoscaling:EC2_INSTANCE_LAUNCHING"
 
   notification_metadata = jsonencode({
@@ -191,11 +191,11 @@ resource "aws_iam_policy" "nth-policy" {
     Statement = [{
         Effect = "Allow",
         Action = [
-            # "autoscaling:CompleteLifecycleAction",
-            # "autoscaling:DescribeAutoScalingInstances",
-            # "autoscaling:DescribeTags",
-            # "ec2:DescribeInstances",
-            # "sqs:DeleteMessage",
+            "autoscaling:CompleteLifecycleAction",
+            "autoscaling:DescribeAutoScalingInstances",
+            "autoscaling:DescribeTags",
+            "ec2:DescribeInstances",
+            "sqs:DeleteMessage",
             "sqs:ReceiveMessage"
         ],
         Resource = "*"
