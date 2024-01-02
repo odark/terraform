@@ -45,6 +45,7 @@ resource "aws_subnet" "k8s-subnet" {
   tags = {
     "Name"                                      = "${var.availability_zones[count.index]}"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/elb" = 1
   }
 }
 
